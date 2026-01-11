@@ -6,6 +6,9 @@ tags: ["guide", "astro", "mdx"]
 draft: false
 ---
 
+import ServerOnlyHello from '../../components/react/ServerOnlyHello';
+import CounterIsland from '../../components/react/CounterIsland';
+
 This post is a quick, practical checklist for adding new content.
 
 <img
@@ -84,7 +87,17 @@ export function hello(name: string) {
 
 For inline code, use backticks: `npm run build`.
 
-## 4) When you are ready to publish
+## 4) React island demo (inside a real post)
+
+This section proves the "Astro islands" approach:
+- `ServerOnlyHello` renders via React on the server/build with **no** client hydration.
+- `CounterIsland` hydrates with `client:visible`, so React is only downloaded when this component scrolls into view.
+
+<ServerOnlyHello name="from an MDX blog post" />
+
+<CounterIsland client:visible initial={0} />
+
+## 5) When you are ready to publish
 
 - Set `draft: false`
 - Verify locally:
