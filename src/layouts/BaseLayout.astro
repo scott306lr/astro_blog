@@ -24,17 +24,22 @@ const { title, description } = Astro.props;
 		<ClientRouter />
 
 		<script is:inline>
-			function applyTheme() {
-				const key = 'theme';
-				const stored = localStorage.getItem(key);
-				const theme = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
-				const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-				const isDark = theme === 'dark' || (theme === 'system' && prefersDark);
-				document.documentElement.classList.toggle('dark', isDark);
-			}
+			(function () {
+				function applyTheme() {
+					const key = 'theme';
+					const stored = localStorage.getItem(key);
+					const theme = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+					const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+					const isDark = theme === 'dark' || (theme === 'system' && prefersDark);
+					document.documentElement.classList.toggle('dark', isDark);
+				}
 
-			applyTheme();
-			document.addEventListener('astro:after-swap', applyTheme);
+				applyTheme();
+
+				// Prevent flash during view transitions by applying ASAP.
+				document.addEventListener('astro:before-swap', applyTheme);
+				document.addEventListener('astro:after-swap', applyTheme);
+			})();
 		</script>
 
 		<script is:inline>
