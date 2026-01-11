@@ -22,13 +22,16 @@ const { id, placeholder = 'Filter…', label = 'Filter' } = Astro.props;
 
 <script is:inline data-filter-id={JSON.stringify(id)}>
 	(function () {
-		const input = document.getElementById(JSON.parse(document.currentScript?.dataset.filterId ?? '""'));
+		const filterId = JSON.parse(document.currentScript?.dataset.filterId ?? '""');
+		const input = typeof filterId === 'string' ? document.getElementById(filterId) : null;
 		if (!(input instanceof HTMLInputElement)) return;
 
-		const persistKey = `filter:${input.id}`;
+		if (input.dataset.persistBound === 'true') return;
+		input.dataset.persistBound = 'true';
 
+		const persistKey = `filter:${input.id}`;
 		const stored = sessionStorage.getItem(persistKey);
-		if (stored) {
+		if (typeof stored === 'string' && stored.length) {
 			input.value = stored;
 			input.dispatchEvent(new Event('input', { bubbles: true }));
 		}
