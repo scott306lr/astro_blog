@@ -41,6 +41,7 @@ const { title, description } = Astro.props;
 			const COPY_RESET_MS = 1200;
 			const COPY_CODE_BUTTON_SELECTOR = 'button.code-copy';
 			const CODE_BLOCK_SELECTOR = 'pre.astro-code';
+			const CODE_COPY_INIT_FLAG = 'codeCopyInit';
 
 			function getPreText(pre) {
 				const code = pre.querySelector('code');
@@ -57,8 +58,8 @@ const { title, description } = Astro.props;
 				`.trim();
 			}
 
-			function ensureCodeCopyButtons(root = document) {
-				root.querySelectorAll(CODE_BLOCK_SELECTOR).forEach((pre) => {
+			function ensureCodeCopyButtons(root) {
+				(root || document).querySelectorAll(CODE_BLOCK_SELECTOR).forEach((pre) => {
 					if (!(pre instanceof HTMLElement)) return;
 					if (pre.querySelector(COPY_CODE_BUTTON_SELECTOR)) return;
 
@@ -77,7 +78,6 @@ const { title, description } = Astro.props;
 							button.setAttribute('title', 'Copied.');
 							button.dataset.copied = 'true';
 						} catch {
-							// No clipboard permission; do nothing.
 							return;
 						}
 
@@ -92,9 +92,28 @@ const { title, description } = Astro.props;
 				});
 			}
 
-			ensureCodeCopyButtons();
-			document.addEventListener('astro:page-load', () => ensureCodeCopyButtons());
-			document.addEventListener('astro:after-swap', () => ensureCodeCopyButtons());
+			function setupCodeCopyObserver() {
+				if (window[CODE_COPY_INIT_FLAG]) return;
+				window[CODE_COPY_INIT_FLAG] = true;
+
+				ensureCodeCopyButtons(document);
+
+				const observer = new MutationObserver((mutations) => {
+					for (const mutation of mutations) {
+						for (const node of mutation.addedNodes) {
+							if (!(node instanceof HTMLElement)) continue;
+
+							if (node.matches?.(CODE_BLOCK_SELECTOR) || node.querySelector?.(CODE_BLOCK_SELECTOR)) {
+								ensureCodeCopyButtons(node);
+							}
+						}
+					}
+				});
+
+				observer.observe(document.body, { childList: true, subtree: true });
+			}
+
+			setupCodeCopyObserver();
 		</script>
 
 	</head>
