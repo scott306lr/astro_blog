@@ -28,7 +28,7 @@ const { posts, projects } = await getEntriesForTag(tag.slug);
 						post={post}
 						compact
 						filterText={[post.data.title, post.data.description, ...(post.data.tags ?? [])]
-							.filter(Boolean)
+							.filter((v) => typeof v === 'string' && v.length > 0)
 							.join(' ')
 							.toLowerCase()}
 					/>
@@ -47,7 +47,7 @@ const { posts, projects } = await getEntriesForTag(tag.slug);
 						project={project}
 						compact
 						filterText={[project.data.title, project.data.summary, ...(project.data.tags ?? [])]
-							.filter(Boolean)
+							.filter((v) => typeof v === 'string' && v.length > 0)
 							.join(' ')
 							.toLowerCase()}
 					/>
