@@ -8,7 +8,7 @@ import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  site: 'https://scott306lr.github.io',
+  site: 'https://www.scottwps.com',
   vite: {
     plugins: [tailwindcss()],
   },
