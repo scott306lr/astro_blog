@@ -1,11 +1,11 @@
-import React from 'react';
+import { useState } from 'preact/hooks';
 
 type Props = {
 	initial?: number;
 };
 
 export default function CounterIsland({ initial = 0 }: Props) {
-	const [count, setCount] = React.useState(initial);
+	const [count, setCount] = useState(initial);
 
 	return (
 		<div className="inline-flex items-center gap-2">
