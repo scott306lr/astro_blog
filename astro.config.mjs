@@ -8,11 +8,21 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 
+const shouldAnalyzeBundle = process.env.ANALYZE_BUNDLE === 'true';
+
 export default defineConfig({
   site: 'https://www.scottwps.com',
   prefetch: true,
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [
+      tailwindcss(),
+      shouldAnalyzeBundle
+        ? (await import('rollup-plugin-visualizer')).visualizer({
+            emitFile: true,
+            filename: 'stats.html',
+          })
+        : undefined,
+    ].filter(Boolean),
   },
   integrations: [
     react(),
