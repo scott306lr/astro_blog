@@ -189,12 +189,22 @@ const { title, description } = Astro.props;
 						if (!(link instanceof HTMLAnchorElement)) return;
 						if (!link.href) return;
 						if (link.target && link.target !== '_self') return;
+						if (link.hasAttribute('download')) return;
 						if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
 						if (event.button !== 0) return;
 
-						const current = normalizePath(window.location.pathname);
-						const next = normalizePath(link.pathname);
-						if (current === next) event.preventDefault();
+						// If the user is already on this route, avoid re-navigating.
+						// (Query/hash changes are allowed.)
+						const currentPath = normalizePath(window.location.pathname);
+						const nextPath = normalizePath(link.pathname);
+						if (currentPath !== nextPath) return;
+
+						const currentUrl = new URL(window.location.href);
+						const nextUrl = new URL(link.href);
+						if (currentUrl.search !== nextUrl.search) return;
+						if (currentUrl.hash !== nextUrl.hash) return;
+
+						event.preventDefault();
 					});
 				})();
 			</script>
