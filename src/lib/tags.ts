@@ -1,4 +1,5 @@
-export function slugifyTag(tag: string): string {
+export function slugifyTag(tag: unknown): string {
+  if (typeof tag !== 'string') return '';
   return tag
     .trim()
     .toLowerCase()
