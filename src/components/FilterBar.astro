@@ -1,0 +1,40 @@
+---
+export type Props = {
+	id: string;
+	placeholder?: string;
+	label?: string;
+};
+
+const { id, placeholder = 'Filter…', label = 'Filter' } = Astro.props;
+---
+
+<div class="mt-6 flex items-center gap-3">
+	<label for={id} class="text-sm text-muted-foreground">{label}</label>
+	<input
+		id={id}
+		type="search"
+		placeholder={placeholder}
+		autocomplete="off"
+		enterkeyhint="search"
+		class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-xs outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+	/>
+</div>
+
+<script is:inline data-filter-id={JSON.stringify(id)}>
+	(function () {
+		const input = document.getElementById(JSON.parse(document.currentScript?.dataset.filterId ?? '""'));
+		if (!(input instanceof HTMLInputElement)) return;
+
+		const persistKey = `filter:${input.id}`;
+
+		const stored = sessionStorage.getItem(persistKey);
+		if (stored) {
+			input.value = stored;
+			input.dispatchEvent(new Event('input', { bubbles: true }));
+		}
+
+		input.addEventListener('input', () => {
+			sessionStorage.setItem(persistKey, input.value);
+		});
+	})();
+</script>

@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getEntriesForTag, getTagIndex } from '../../lib/tagIndex';
 import { formatYmd } from '../../lib/dates';
+import FilterBar from '../../components/FilterBar.astro';
 
 export async function getStaticPaths() {
 	const tags = await getTagIndex();
@@ -15,12 +16,19 @@ const { posts, works } = await getEntriesForTag(tag.slug);
 <BaseLayout title={`Tag: ${tag.label}`} description={`Posts and works tagged “${tag.label}”.`}>
 	<h1 class="text-2xl font-bold tracking-tight">Tag: {tag.label}</h1>
 
+	<FilterBar id="tag-filter" placeholder={`Filter in “${tag.label}”…`} />
+
 	{posts.length ? (
 		<section class="mt-8">
 			<h2 class="text-lg font-semibold">Posts</h2>
-			<ul class="mt-4 space-y-3">
+			<ul class="mt-4 space-y-3" id="tag-posts-list">
 				{posts.map((p) => (
-					<li>
+					<li
+						data-filter-text={[p.data.title, ...(p.data.tags ?? [])]
+							.filter(Boolean)
+							.join(' ')
+							.toLowerCase()}
+					>
 						<a
 							href={`/posts/${p.slug}`}
 							class="block rounded-lg border border-border bg-card p-4 no-underline transition-colors hover:bg-accent"
@@ -37,9 +45,14 @@ const { posts, works } = await getEntriesForTag(tag.slug);
 	{works.length ? (
 		<section class="mt-10">
 			<h2 class="text-lg font-semibold">Works</h2>
-			<ul class="mt-4 space-y-3">
+			<ul class="mt-4 space-y-3" id="tag-works-list">
 				{works.map((w) => (
-					<li>
+					<li
+						data-filter-text={[w.data.title, ...(w.data.tags ?? [])]
+							.filter(Boolean)
+							.join(' ')
+							.toLowerCase()}
+					>
 						<a
 							href={`/works/${w.slug}`}
 							class="block rounded-lg border border-border bg-card p-4 no-underline transition-colors hover:bg-accent"
@@ -54,4 +67,31 @@ const { posts, works } = await getEntriesForTag(tag.slug);
 	) : null}
 
 	{!posts.length && !works.length ? <p class="mt-8 text-muted-foreground">Nothing here yet.</p> : null}
+
+	<p id="tag-empty" class="mt-8 hidden text-sm text-muted-foreground">No matches.</p>
+
+	<script is:inline>
+		(function () {
+			const input = document.getElementById('tag-filter');
+			const empty = document.getElementById('tag-empty');
+			if (!(input instanceof HTMLInputElement)) return;
+
+			const items = Array.from(document.querySelectorAll('[data-filter-text]'));
+
+			function apply() {
+				const q = input.value.trim().toLowerCase();
+				let visible = 0;
+				for (const el of items) {
+					const hay = (el.getAttribute('data-filter-text') ?? '').toLowerCase();
+					const show = !q || hay.includes(q);
+					(el instanceof HTMLElement ? el : el).classList.toggle('hidden', !show);
+					if (show) visible++;
+				}
+				if (empty) empty.classList.toggle('hidden', visible !== 0);
+			}
+
+			input.addEventListener('input', apply);
+			apply();
+		})();
+	</script>
 </BaseLayout>

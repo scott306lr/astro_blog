@@ -11,26 +11,52 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 	<script is:inline>
 		// Pagefind UI (generated at build time into /pagefind)
 		// eslint-disable-next-line no-undef
-		window.addEventListener('DOMContentLoaded', async () => {
+		function initPagefind() {
 			const root = document.getElementById('search');
 			if (!root) return;
 
-			const css = document.createElement('link');
-			css.rel = 'stylesheet';
-			css.href = '/pagefind/pagefind-ui.css';
-			document.head.appendChild(css);
+			// Re-initialize whenever the Search page becomes active.
 
-			const script = document.createElement('script');
-			script.src = '/pagefind/pagefind-ui.js';
-			script.onload = () => {
+			if (!document.querySelector('link[href="/pagefind/pagefind-ui.css"]')) {
+				const css = document.createElement('link');
+				css.rel = 'stylesheet';
+				css.href = '/pagefind/pagefind-ui.css';
+				document.head.appendChild(css);
+			}
+
+			// If we re-enter this page via ClientRouter, the root div is new
+			// but we may still have an existing Pagefind UI mounted.
+			root.innerHTML = '';
+
+			function mount() {
 				// @ts-ignore
 				new PagefindUI({
 					element: '#search',
 					showSubResults: true,
 					processResult: (result) => result,
 				});
-			};
-			document.head.appendChild(script);
-		});
+			}
+
+			if (window.PagefindUI) {
+				mount();
+				return;
+			}
+
+			const existingScript = document.querySelector('script[src="/pagefind/pagefind-ui.js"]');
+			if (!existingScript) {
+				const script = document.createElement('script');
+				script.src = '/pagefind/pagefind-ui.js';
+				script.onload = mount;
+				document.head.appendChild(script);
+				return;
+			}
+
+			// Script already present (may still be loading)
+			existingScript.addEventListener('load', mount, { once: true });
+		}
+
+		// Supports both full page load and ClientRouter navigations.
+		document.addEventListener('astro:page-load', initPagefind);
+		initPagefind();
 	</script>
 </BaseLayout>

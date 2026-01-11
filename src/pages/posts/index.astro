@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 import { isNotDraft, sortByDateDesc } from '../../lib/content';
 import { formatYmd } from '../../lib/dates';
+import FilterBar from '../../components/FilterBar.astro';
 
 const posts = (await getCollection('posts')).filter(isNotDraft).sort(sortByDateDesc);
 ---
@@ -10,11 +11,18 @@ const posts = (await getCollection('posts')).filter(isNotDraft).sort(sortByDateD
 <BaseLayout title="Posts" description="Thoughts, notes, and write-ups.">
 	<h1 class="text-2xl font-semibold tracking-tight">Posts</h1>
 	<p class="mt-2 text-sm text-muted-foreground">Thoughts, notes, and write-ups.</p>
-	<div class="mt-6 grid gap-4">
+
+	<FilterBar id="posts-filter" placeholder="Filter posts (title, description, tags)…" />
+
+	<div class="mt-6 grid gap-4" id="posts-list">
 		{posts.map((post) => (
 			<a
 				href={`/posts/${post.slug}`}
 				class="rounded-lg border bg-card p-4 no-underline transition hover:bg-accent"
+				data-filter-text={[post.data.title, post.data.description, ...(post.data.tags ?? [])]
+					.filter(Boolean)
+					.join(' ')
+					.toLowerCase()}
 			>
 				<div class="flex items-baseline justify-between gap-4">
 					<span class="font-medium text-card-foreground">{post.data.title}</span>
@@ -24,4 +32,32 @@ const posts = (await getCollection('posts')).filter(isNotDraft).sort(sortByDateD
 			</a>
 		))}
 	</div>
+
+	<p id="posts-empty" class="mt-6 hidden text-sm text-muted-foreground">No matches.</p>
+
+	<script is:inline>
+		(function () {
+			const input = document.getElementById('posts-filter');
+			const list = document.getElementById('posts-list');
+			const empty = document.getElementById('posts-empty');
+			if (!(input instanceof HTMLInputElement) || !list) return;
+
+			const items = Array.from(list.querySelectorAll('[data-filter-text]'));
+
+			function apply() {
+				const q = input.value.trim().toLowerCase();
+				let visible = 0;
+				for (const el of items) {
+					const hay = (el.getAttribute('data-filter-text') ?? '').toLowerCase();
+					const show = !q || hay.includes(q);
+					(el instanceof HTMLElement ? el : el).classList.toggle('hidden', !show);
+					if (show) visible++;
+				}
+				if (empty) empty.classList.toggle('hidden', visible !== 0);
+			}
+
+			input.addEventListener('input', apply);
+			apply();
+		})();
+	</script>
 </BaseLayout>
