@@ -1,8 +1,8 @@
 ---
-title: "How to add content (posts, projects, images, code)"
-description: "A quick guide for adding new posts/projects, plus images and code blocks."
+title: 'How to add content (posts, projects, images, code)'
+description: 'A quick guide for adding new posts/projects, plus images and code blocks.'
 pubDate: 2026-01-11
-tags: ["guide", "astro", "mdx"]
+tags: ['guide', 'astro', 'mdx']
 draft: false
 ---
 
@@ -41,11 +41,11 @@ There are two approaches: “simple” (just copy a file) or “optimized” (As
 
 ### Option A (simple): serve from `public/`
 
-1) Put files under `public/`, for example:
+1. Put files under `public/`, for example:
 
 - `public/images/my-post/diagram.png`
 
-2) Reference them from MDX with a plain `<img>`:
+2. Reference them from MDX with a plain `<img>`:
 
 ```mdx
 <img src="/images/my-post/diagram.png" alt="Diagram" />
@@ -71,6 +71,7 @@ import figure from '../../assets/profile-placeholder.png';
 ```
 
 Notes:
+
 - The import path is relative to the `.mdx` file.
 - Prefer this when performance/quality matters.
 
@@ -108,6 +109,7 @@ This section is a reference example: how to embed a small interactive “island�
     <div class="mt-3">
       <CounterIsland client:visible initial={0} />
     </div>
+
   </div>
 
   <details class="mt-4">
