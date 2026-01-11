@@ -26,20 +26,34 @@ const { title, description } = Astro.props;
 		<script is:inline>
 			(function () {
 				const THEME_KEY = 'theme';
+				const DEFAULT_THEME = 'system';
+				const DARK_CLASS = 'dark';
+				const MEDIA_QUERY = '(prefers-color-scheme: dark)';
 
 				function getTheme() {
 					const stored = localStorage.getItem(THEME_KEY);
-					return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+					return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : DEFAULT_THEME;
+				}
+
+				function isDarkTheme(theme) {
+					return theme === 'dark';
+				}
+
+				function prefersDark() {
+					return window.matchMedia(MEDIA_QUERY).matches;
 				}
 
 				function computeIsDark() {
 					const theme = getTheme();
-					const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-					return theme === 'dark' || (theme === 'system' && prefersDark);
+					return isDarkTheme(theme) || (theme === 'system' && prefersDark());
+				}
+
+				function applyThemeClass(doc, dark) {
+					doc.documentElement.classList.toggle(DARK_CLASS, Boolean(dark));
 				}
 
 				function applyTheme() {
-					document.documentElement.classList.toggle('dark', computeIsDark());
+					applyThemeClass(document, computeIsDark());
 				}
 
 				// Initial load: run at parse-time.
@@ -47,16 +61,15 @@ const { title, description } = Astro.props;
 
 				// View transitions: keep theme correct during swaps.
 				document.addEventListener('astro:before-swap', (event) => {
-					applyTheme();
+					const dark = computeIsDark();
+					applyThemeClass(document, dark);
 
 					// Ensure the incoming document keeps the same theme class so it
 					// doesn't flash default styles mid-transition.
-					const nextIsDark = computeIsDark();
 					const nextDoc = event?.newDocument;
-					if (nextDoc?.documentElement) {
-						nextDoc.documentElement.classList.toggle('dark', nextIsDark);
-					}
+					if (nextDoc?.documentElement) applyThemeClass(nextDoc, dark);
 				});
+
 				document.addEventListener('astro:after-swap', applyTheme);
 			})();
 		</script>
@@ -65,7 +78,7 @@ const { title, description } = Astro.props;
 			const COPY_RESET_MS = 1200;
 			const COPY_CODE_BUTTON_SELECTOR = 'button.code-copy';
 			const CODE_BLOCK_SELECTOR = 'article pre:has(> code)';
-			const CODE_COPY_INIT_FLAG = 'codeCopyInit';
+			const GLOBAL_INIT_FLAG = '__codeCopyInit';
 			const CONTENT_ROOT_SELECTOR = 'main#content';
 
 			function getPreText(pre) {
@@ -132,8 +145,8 @@ const { title, description } = Astro.props;
 			}
 
 			function initCodeCopy() {
-				if (window[CODE_COPY_INIT_FLAG]) return;
-				window[CODE_COPY_INIT_FLAG] = true;
+				if (window[GLOBAL_INIT_FLAG]) return;
+				window[GLOBAL_INIT_FLAG] = true;
 
 				document.addEventListener('click', handleCopyClick);
 			}

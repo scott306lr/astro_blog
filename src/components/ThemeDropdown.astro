@@ -50,16 +50,25 @@ const menuId = 'theme-menu';
 
 <script>
 	const THEME_KEY = 'theme';
+	const DEFAULT_THEME = 'system';
+	const DARK_CLASS = 'dark';
+	const MEDIA_QUERY = '(prefers-color-scheme: dark)';
 
 	function getStoredTheme() {
 		const t = localStorage.getItem(THEME_KEY);
-		return t === 'light' || t === 'dark' || t === 'system' ? t : 'system';
+		return t === 'light' || t === 'dark' || t === 'system' ? t : DEFAULT_THEME;
+	}
+
+	function prefersDark() {
+		return window.matchMedia(MEDIA_QUERY).matches;
+	}
+
+	function isDarkTheme(theme) {
+		return theme === 'dark' || (theme === 'system' && prefersDark());
 	}
 
 	function applyTheme(theme) {
-		const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-		const isDark = theme === 'dark' || (theme === 'system' && prefersDark);
-		document.documentElement.classList.toggle('dark', isDark);
+		document.documentElement.classList.toggle(DARK_CLASS, isDarkTheme(theme));
 	}
 
 	function setTheme(theme) {
@@ -73,8 +82,8 @@ const menuId = 'theme-menu';
 		if (!(button instanceof HTMLElement) || !(menu instanceof HTMLElement)) return;
 
 		// Avoid stacking listeners across view transitions.
-		if (button.dataset.themeInit === 'true') return;
-		button.dataset.themeInit = 'true';
+		if (window.__themeDropdownInit) return;
+		window.__themeDropdownInit = true;
 
 		const close = () => {
 			menu.hidden = true;
@@ -109,8 +118,10 @@ const menuId = 'theme-menu';
 			});
 		});
 
+		applyTheme(getStoredTheme());
+
 		// Keep theme synced when system preference changes.
-		const media = window.matchMedia('(prefers-color-scheme: dark)');
+		const media = window.matchMedia(MEDIA_QUERY);
 		const handler = () => {
 			if (getStoredTheme() === 'system') applyTheme('system');
 		};
