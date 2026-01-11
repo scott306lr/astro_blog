@@ -67,47 +67,56 @@ const menuId = 'theme-menu';
 		applyTheme(theme);
 	}
 
-	const button = document.getElementById('theme-menu-button');
-	const menu = document.getElementById('theme-menu');
-	if (!button || !menu) throw new Error('Theme dropdown elements missing');
+	function initThemeDropdown() {
+		const button = document.getElementById('theme-menu-button');
+		const menu = document.getElementById('theme-menu');
+		if (!(button instanceof HTMLElement) || !(menu instanceof HTMLElement)) return;
 
-	const close = () => {
-		menu.hidden = true;
-		button.setAttribute('aria-expanded', 'false');
-	};
+		// Avoid stacking listeners across view transitions.
+		if (button.dataset.themeInit === 'true') return;
+		button.dataset.themeInit = 'true';
 
-	const open = () => {
-		menu.hidden = false;
-		button.setAttribute('aria-expanded', 'true');
-	};
+		const close = () => {
+			menu.hidden = true;
+			button.setAttribute('aria-expanded', 'false');
+		};
 
-	button.addEventListener('click', () => {
-		if (menu.hidden) open();
-		else close();
-	});
+		const open = () => {
+			menu.hidden = false;
+			button.setAttribute('aria-expanded', 'true');
+		};
 
-	document.addEventListener('click', (e) => {
-		if (!(e.target instanceof Node)) return;
-		if (!menu.contains(e.target) && !button.contains(e.target)) close();
-	});
-
-	document.addEventListener('keydown', (e) => {
-		if (e.key === 'Escape') close();
-	});
-
-	menu.querySelectorAll('[data-theme-option]').forEach((el) => {
-		el.addEventListener('click', () => {
-			const theme = el.getAttribute('data-theme-option');
-			if (theme !== 'system' && theme !== 'light' && theme !== 'dark') return;
-			setTheme(theme);
-			close();
+		button.addEventListener('click', () => {
+			if (menu.hidden) open();
+			else close();
 		});
-	});
 
-	// Keep theme synced when system preference changes.
-	const media = window.matchMedia('(prefers-color-scheme: dark)');
-	const handler = () => {
-		if (getStoredTheme() === 'system') applyTheme('system');
-	};
-	media.addEventListener('change', handler);
+		document.addEventListener('click', (e) => {
+			if (!(e.target instanceof Node)) return;
+			if (!menu.contains(e.target) && !button.contains(e.target)) close();
+		});
+
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape') close();
+		});
+
+		menu.querySelectorAll('[data-theme-option]').forEach((el) => {
+			el.addEventListener('click', () => {
+				const theme = el.getAttribute('data-theme-option');
+				if (theme !== 'system' && theme !== 'light' && theme !== 'dark') return;
+				setTheme(theme);
+				close();
+			});
+		});
+
+		// Keep theme synced when system preference changes.
+		const media = window.matchMedia('(prefers-color-scheme: dark)');
+		const handler = () => {
+			if (getStoredTheme() === 'system') applyTheme('system');
+		};
+		media.addEventListener('change', handler);
+	}
+
+	initThemeDropdown();
+	document.addEventListener('astro:page-load', initThemeDropdown);
 </script>
