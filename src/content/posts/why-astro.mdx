@@ -11,7 +11,11 @@ Astro is a great fit for content-heavy sites because it ships less JavaScript by
 ## The short version
 
 - Static-first: most pages render to HTML at build time.
-- Islands architecture: add interactivity only where needed.
-- Great performance defaults: fast pages without fighting the framework.
+- Islands architecture: add interactivity only where it matters.
+- Performance-friendly defaults: a fast baseline without constant tuning.
 
-On this site, I use islands for small widgets and keep the rest server-rendered.
+On this site, I use islands for small widgets and keep the rest static/server-rendered.
+
+## A simple rule of thumb
+
+If it doesnt need interactivity, it stays pure HTML/CSS.
